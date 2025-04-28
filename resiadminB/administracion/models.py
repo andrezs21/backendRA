@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from decimal import Decimal
 from datetime import datetime, timedelta
 from .validators import validar_rut
+from django.core.exceptions import ValidationError
 
 # Create your models here.
 
@@ -125,6 +126,12 @@ class Usuario(AbstractUser):
     REQUIRED_FIELDS = ['first_name', 'last_name', 'rut']
 
     objects = CustomUserManager()
+
+    def clean(self):
+        super().clean()
+        # Si el usuario es residente, debe tener una unidad habitacional asignada
+        if self.rol and self.rol.nombre == 'RESIDENTE' and not self.unidad_habitacional:
+            raise ValidationError('Los residentes deben tener una unidad habitacional asignada')
 
     def __str__(self):
         return f"{self.get_full_name()} ({self.email})"
