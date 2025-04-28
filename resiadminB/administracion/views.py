@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
@@ -53,3 +53,14 @@ class UsuarioViewSet(viewsets.ModelViewSet):
             {'error': 'Credenciales inválidas'},
             status=status.HTTP_401_UNAUTHORIZED
         )
+
+@api_view(['GET'])
+def welcome(request):
+    return Response({
+        "message": "Bienvenido a la API de ResiAdmin",
+        "endpoints": {
+            "registro": "/api/usuarios/register/",
+            "login": "/api/usuarios/login/",
+            "admin": "/admin/"
+        }
+    })
