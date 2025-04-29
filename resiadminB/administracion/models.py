@@ -225,6 +225,35 @@ class PagoDetalle(models.Model):
         verbose_name = "Detalle de Pago"
         verbose_name_plural = "Detalles de Pago"
 
+class GastoComun(models.Model):
+    TIPOS = (
+        ('MANTENIMIENTO', 'Mantenimiento'),
+        ('LIMPIEZA', 'Limpieza'),
+        ('SEGURIDAD', 'Seguridad'),
+        ('ADMINISTRACION', 'Administración'),
+        ('OTROS', 'Otros'),
+    )
+    
+    complejo = models.ForeignKey(ComplejoHabitacional, on_delete=models.CASCADE, related_name='gastos_comunes')
+    tipo = models.CharField(max_length=20, choices=TIPOS)
+    descripcion = models.TextField()
+    monto = models.DecimalField(max_digits=10, decimal_places=2)
+    fecha = models.DateField()
+    mes = models.IntegerField()  # 1-12
+    anio = models.IntegerField()
+    creado_por = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='gastos_creados')
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    comprobante = models.FileField(upload_to='comprobantes/', null=True, blank=True)
+    estado = models.CharField(max_length=20, choices=[('PENDIENTE', 'Pendiente'), ('APROBADO', 'Aprobado'), ('RECHAZADO', 'Rechazado')], default='PENDIENTE')
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} - {self.complejo.nombre} - {self.mes}/{self.anio}"
+
+    class Meta:
+        verbose_name = "Gasto Común"
+        verbose_name_plural = "Gastos Comunes"
+        ordering = ['-fecha', '-fecha_creacion']
+
 class EspacioComun(models.Model):
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField(blank=True)
