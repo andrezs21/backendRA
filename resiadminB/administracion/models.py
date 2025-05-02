@@ -243,7 +243,6 @@ class GastoComun(models.Model):
     anio = models.IntegerField()
     creado_por = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='gastos_creados')
     fecha_creacion = models.DateTimeField(auto_now_add=True)
-    comprobante = models.FileField(upload_to='comprobantes/', null=True, blank=True)
     estado = models.CharField(max_length=20, choices=[('PENDIENTE', 'Pendiente'), ('APROBADO', 'Aprobado'), ('RECHAZADO', 'Rechazado')], default='PENDIENTE')
 
     def __str__(self):

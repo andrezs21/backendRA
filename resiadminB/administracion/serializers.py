@@ -35,7 +35,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
         source='unidad_habitacional',
         write_only=True,
         required=False
-    )
+    ) 
 
     class Meta:
         model = User
