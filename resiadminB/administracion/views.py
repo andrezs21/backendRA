@@ -213,3 +213,41 @@ def logout_view(request):
         return Response({
             'error': str(e)
         }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET']) 
+def obtener_complejo_administrador(request):
+    """
+    Devuelve el complejo asociado al usuario administrador actualmente autenticado.
+    """
+    usuario = request.user
+    
+    # Verificar si el usuario tiene rol de administrador
+    if usuario.rol and usuario.rol.nombre == 'ADMIN':
+        # Si tiene el nuevo campo complejo_administrado
+        if usuario.complejo_administrado:
+            complejo = usuario.complejo_administrado
+            return Response({
+                'id': complejo.id,
+                'nombre': complejo.nombre,
+                'direccion': complejo.direccion,
+                'mensaje': 'Complejo encontrado'
+            })
+        else:
+            # Buscar si este usuario está como administrador en algún complejo
+            complejo = ComplejoHabitacional.objects.filter(administrador=usuario).first()
+            if complejo:
+                return Response({
+                    'id': complejo.id,
+                    'nombre': complejo.nombre,
+                    'direccion': complejo.direccion,
+                    'mensaje': 'Complejo encontrado mediante relación inversa'
+                })
+            else:
+                return Response({
+                    'error': 'No tienes ningún complejo asociado como administrador'
+                }, status=status.HTTP_404_NOT_FOUND)
+    else:
+        return Response({
+            'error': 'No tienes el rol de administrador'
+        }, status=status.HTTP_403_FORBIDDEN)

@@ -116,6 +116,7 @@ class Usuario(AbstractUser):
     telefono = models.CharField(max_length=15, blank=True)
     rol = models.ForeignKey(Rol, on_delete=models.PROTECT, related_name='usuarios', null=True)
     unidad_habitacional = models.ForeignKey('UnidadHabitacional', on_delete=models.SET_NULL, null=True, blank=True, related_name='residentes')
+    complejo_administrado = models.ForeignKey(ComplejoHabitacional, on_delete=models.SET_NULL, null=True, blank=True, related_name='administradores')
 
     # Sobreescribimos el campo email para hacerlo único
     email = models.EmailField(unique=True)
@@ -132,9 +133,27 @@ class Usuario(AbstractUser):
         # Si el usuario es residente, debe tener una unidad habitacional asignada
         if self.rol and self.rol.nombre == 'RESIDENTE' and not self.unidad_habitacional:
             raise ValidationError('Los residentes deben tener una unidad habitacional asignada')
+        
+        # Si el usuario es administrador, debe tener un complejo asignado
+        if self.rol and self.rol.nombre == 'ADMIN' and not self.complejo_administrado:
+            raise ValidationError('Los administradores deben tener un complejo habitacional asignado')
+
+    def save(self, *args, **kwargs):
+        # Si el usuario es administrador y se asigna un complejo, actualizar también la relación inversa
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+        
+        if self.rol and self.rol.nombre == 'ADMIN' and self.complejo_administrado:
+            # Actualizar el campo administrador del complejo
+            if self.complejo_administrado.administrador != self:
+                self.complejo_administrado.administrador = self
+                self.complejo_administrado.save(update_fields=['administrador'])
 
     def __str__(self):
-        return f"{self.get_full_name()} ({self.email})"
+        base_str = f"{self.get_full_name()} ({self.email})"
+        if self.rol and self.rol.nombre == 'ADMIN' and self.complejo_administrado:
+            return f"{base_str} - Admin de {self.complejo_administrado.nombre}"
+        return base_str
 
     class Meta:
         verbose_name = "Usuario"
